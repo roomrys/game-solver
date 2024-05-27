@@ -1,5 +1,6 @@
 # game-solver
 
+## Run the web app
 This package has evolved over 1-day to include a Flask App for more detailed visual
 feedback. To run the app, first get set-up with the dependencies (see below), then run
 
@@ -26,16 +27,15 @@ puzzles.
 
 For example, game-solver currently outputs this partial solution:
 
-# TODO paste screenshot
+<img width="500" alt="image" src="https://github.com/roomrys/game-solver/assets/38435167/ac9f8fde-460b-4c1a-86e3-1899cfb1d5be">
 
 but, us human solvers can determine for example that this solution works for this cell
 
-# TODO past screenshot
+<img width="500" alt="image" src="https://github.com/roomrys/game-solver/assets/38435167/469b71c0-d459-43fd-a2f7-70353ad725ed">
 
-using the reasoning that well "4" can only be in these places and if "4" can only be
-here for this row, then that means "4" cannot be in the same block for these other rows,
-and "4" only has one other option for this other row outside of the "taken" block, so
-"4" must be in the other block.
+using the reasoning that for row 4, "4" can only be in the second block. So for row 5, that
+means that "4" cannot be in the second block. Since there is only one other place for "4"
+in row 5 outside of the second block, "4" must be located there.
 
 ## Dependencies
 
