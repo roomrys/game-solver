@@ -30,6 +30,7 @@ function createSudokuBoard(numbers_by_index) {
       if (numbers_by_index.hasOwnProperty(key)) {
         cellInput.value = numbers_by_index[key];
         cellInput.readOnly = true;
+        cellInput.classList.add("readonly");
       }
 
       row.appendChild(cell);
@@ -49,22 +50,19 @@ function updateSudokuBoard(numbers_by_index) {
     var options = cell.options;
     var cellInput = cell.cellInput;
 
-    console.log(numbers_by_index);
-    console.log(`key = ${key}`);
-    console.log(options);
     // Check if the cell is read-only
     if (cell.readOnly) {
       // Ensure that the value is correct
       if (cell.value != numbers_by_index[key]) {
         console.log("Incorrect value in cell " + key);
         // Turn cell text red
-        cellInput.style.color = "red";
+        cellInput.classList.add("conflict");
+      } else {
+        // Reset cell text color
+        cellInput.classList.remove("conflict");
       }
       continue;
     } else {
-      // Reset cell text color
-      cellInput.style.color = "black";
-
       // Check if the value is a list
       if (Array.isArray(numbers_by_index[key])) {
         // Display the list as a comma-separated string
@@ -75,39 +73,3 @@ function updateSudokuBoard(numbers_by_index) {
     }
   }
 }
-
-// // TODO(LM): Remove hard-coded numbers_by_index and instead add two buttons:
-// // - "Set Puzzle" for users to manually enter then set the starting positions
-// // - "Generate Puzzle" to randomly generate a puzzle
-// // Call the function to create the board
-// var numbers_by_index = {
-//   "1,2": 6,
-//   "1,5": 9,
-//   "1,7": 3,
-//   "2,3": 5,
-//   "2,6": 8,
-//   "2,9": 4,
-//   "3,1": 7,
-//   "3,4": 6,
-//   "3,8": 5,
-//   "4,2": 2,
-//   "4,4": 8,
-//   "4,8": 6,
-//   "5,3": 6,
-//   "5,5": 7,
-//   "5,7": 5,
-//   "6,1": 4,
-//   "6,6": 1,
-//   "6,9": 8,
-//   "7,2": 4,
-//   "7,4": 3,
-//   "7,7": 1,
-//   "7,8": 9,
-//   "8,3": 7,
-//   "8,5": 5,
-//   "8,9": 3,
-//   "9,1": 3,
-//   "9,6": 2,
-//   "9,7": 4,
-// };
-// createSudokuBoard((numbers_by_index = numbers_by_index));

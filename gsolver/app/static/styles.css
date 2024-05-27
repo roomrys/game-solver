@@ -29,6 +29,15 @@
     border: 0;
     text-align: center;
     font-size: xx-large;
+    color: gray;
+  }
+
+  .cell-input.readonly {
+    color: black;
+  }
+
+  .conflict {
+    color: red;
   }
   
 .cell:nth-child(3n) {

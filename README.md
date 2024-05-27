@@ -1,6 +1,7 @@
 # game-solver
 
 ## Run the web app
+
 This package has evolved over 1-day to include a Flask App for more detailed visual
 feedback. To run the app, first get set-up with the dependencies (see below), then run
 
@@ -11,12 +12,14 @@ python -m gsolver.app.main
 and browse to
 
 ```
-127.0.0.1:500
+127.0.0.1:5000
 ```
 
 . The puzzle located at `gsolver/sudoku_puzzle.txt` will be populated on loading the
 window. Hit the "Solve" button to see either the full solution or the partial solution
 if "unsolveable" with the current game-solver.
+
+## Current solver state
 
 Apart from the most simple puzzles, sudoku cannot be solved by just
 eliminating possible cell values based on values that already exist in intersecting
