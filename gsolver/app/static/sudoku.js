@@ -68,8 +68,39 @@ function updateSudokuBoard(numbers_by_index) {
         // Display the list as a comma-separated string
         options.textContent = numbers_by_index[key].join(",");
       } else {
+        options.textContent = "";
         cellInput.value = numbers_by_index[key];
       }
     }
   }
+}
+
+function getUserUpdatedSudokuBoardValues() {
+  // Get all the cells
+  var cells = document.getElementsByClassName("cell");
+
+  // Create an object to store the user input
+  var userInput = {};
+
+  // Update the value of each cell
+  for (var i = 0; i < cells.length; i++) {
+    var cell = cells[i];
+    var key = cell.index;
+    var cellInput = cell.cellInput;
+
+    // Check if the cell is read-only
+    if (cellInput.readOnly) {
+      continue;
+    } else {
+      // Get the value of the cell
+      var value = cellInput.value;
+      if (value) {
+        userInput[key] = parseInt(value);
+      } else {
+        userInput[key] = 0;
+      }
+    }
+  }
+
+  return userInput;
 }

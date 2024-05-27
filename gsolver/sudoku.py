@@ -327,6 +327,20 @@ class Sudoku:
         self.solution = matrix
         return matrix
 
+    def update(self, key: str, value: int):
+        """This function updates the puzzle with the user's input."""
+        logger.info(f"Updating puzzle with user input: {key} = {value}")
+
+        row, column = key.split(",")
+        row = int(row)
+        column = int(column)
+
+        if value == 0:
+            self.matrix[row - 1, column - 1] = np.ones(self.puzzle_size)
+
+        else:
+            self.matrix[row - 1, column - 1] = self.numbers_encoded[value]
+
 
 if __name__ == "__main__":
     sudoku = Sudoku(puzzle_file="./sudoku_puzzle.txt")

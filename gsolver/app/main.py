@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from flask import Flask, jsonify, render_template, session
+from flask import Flask, jsonify, render_template, request, session
 
 from ..sudoku import Sudoku
 
@@ -21,6 +21,18 @@ def home():
 def get_board():
     numbers_by_index_str_keys = sudoku.numbers_by_index_str_keys
     return jsonify(numbers_by_index_str_keys)
+
+
+@app.route("/update", methods=["POST"])
+def update_board():
+    body = request.get_json()
+    logger.debug(f"Update board request: {body}")
+
+    user_values = body.get("userValues", {})
+    for key, value in user_values.items():
+        sudoku.update(key, value)
+
+    return jsonify({"status": "success"}), 200
 
 
 @app.route("/solve")
