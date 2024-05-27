@@ -1,0 +1,4 @@
+# The required dependencies
+
+flask
+numpy

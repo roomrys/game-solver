@@ -1,0 +1,50 @@
+:root {
+    --cell-input-size: 60px;
+    --cell-size: calc(var(--cell-input-size) + 8px);
+    --block-size: calc(var(--cell-size) * 3);
+    --border-width: 1px;
+    --border-width-block: 5px;
+    --block-bg-color: #f0f0f0;
+  }
+  
+  .row {
+      display: flex;
+  }
+  
+  .cell {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      border: var(--border-width) solid black;
+      text-align: center;
+      font-size: large;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+  }
+
+  .cell-input {
+    width: var(--cell-input-size);
+    height: var(--cell-input-size);
+    border: 0;
+    text-align: center;
+    font-size: xx-large;
+  }
+  
+.cell:nth-child(3n) {
+    border-right: var(--border-width-block) solid black;
+}
+
+.row:nth-child(3n) .cell {
+    border-bottom: var(--border-width-block) solid black;
+}
+
+.options {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: small;
+    padding: 2px;
+    z-index: 1;
+    color: gray;
+}

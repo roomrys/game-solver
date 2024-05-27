@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div id="sudoku-board"></div>
+    <script src="{{ url_for('static', filename='sudoku.js') }}"></script>
+    <button id="button-solve">Solve</button>
+    <script src="{{ url_for('static', filename='listeners.js') }}"></script>
+</body>
+</html>
