@@ -1,17 +1,13 @@
 // Try to solve the board when the button is clicked
 document.getElementById("button-solve").addEventListener("click", function () {
-  // Get the numbers from the board
-  fetch("/update", {
-    method: "POST",
-    body: JSON.stringify({ userValues: getUserUpdatedSudokuBoardValues() }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  }).then(() => {
-    fetch("/solve")
-      .then((response) => response.json())
-      .then((data) => updateSudokuBoard((numbers_by_index = data)));
-  });
+  solveBoard();
+});
+
+// Try to solve the board when the Enter key is pressed
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+    solveBoard();
+  }
 });
 
 // Load the board when the page is loaded
@@ -24,8 +20,12 @@ window.addEventListener("load", function () {
       var inputs = document.querySelectorAll(".cell-input");
       inputs.forEach(function (input) {
         input.setAttribute("maxLength", "1");
-        input.addEventListener("keydown", function () {
-          this.value = "";
+        input.addEventListener("keydown", function (event) {
+          if (event.key === "Enter") {
+            solveBoard();
+          } else {
+            this.value = "";
+          }
         });
         input.addEventListener("keypress", function (event) {
           var allowedCharacters = "123456789";
