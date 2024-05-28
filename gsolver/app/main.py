@@ -35,9 +35,14 @@ def update_board():
     return jsonify({"status": "success"}), 200
 
 
-@app.route("/solve")
+@app.route("/solve", methods=["POST"])
 def solve():
-    matrix = sudoku.solve(matrix=sudoku.matrix)
+    body = request.get_json()
+    logger.debug(f"Solve request: {body}")
+    single_iteration = body.get("singleIteration", False)
+    logger.debug(f"Single iteration: {single_iteration}")
+
+    matrix = sudoku.solve(matrix=sudoku.matrix, single_iteration=single_iteration)
     logger.info(f"Solved matrix: {matrix}/nPatial solution: {sudoku.partial_solution}")
     numbers_by_index = sudoku.solution_to_numbers_by_index(
         solution=sudoku.solution, string_keys=True

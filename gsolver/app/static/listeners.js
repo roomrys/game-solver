@@ -7,6 +7,8 @@ document.getElementById("button-solve").addEventListener("click", function () {
 document.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
     solveBoard();
+  } else if (event.key === "ArrowRight") {
+    solveBoard(true);
   }
 });
 

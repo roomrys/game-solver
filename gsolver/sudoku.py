@@ -56,7 +56,9 @@ class Sudoku:
         self.columns = self.get_columns(matrix=self.matrix)
 
         self.solution = None
+        self.number_iterations = 0
         self.partial_solution = False
+        self.last_solved = ("block", self.puzzle_size - 1)
         self.solution_file = Path(self.puzzle_file).parent / "sudoku_solution.txt"
 
     def get_blocks(self, puzzle_size: int, matrix: np.ndarray):
@@ -265,7 +267,7 @@ class Sudoku:
 
         return matrix
 
-    def update_vectors(self, vectors: np.array):
+    def remove_impossible_solutions(self, vectors: np.array):
         """This function updates the possible solutions for a single row in the puzzle."""
 
         # 1. Find vector indices where sum of all vectors along third axis is 1
@@ -275,7 +277,17 @@ class Sudoku:
         # 2. Use vector indices to return solved vectors
         solved_vectors = vectors[solved_vector_inds]
 
-        # 3. Find indices where sum of all solved vectors along rows is 0
+        # 2a. Check if any vectors are the same
+        unique_vectors, counts = np.unique(solved_vectors, axis=0, return_counts=True)
+        if not np.all(counts == 1):
+            duplicate_vectors = unique_vectors[np.where(counts > 1)]
+            duplicate_numbers = np.where(duplicate_vectors[0] == 1)[0] + 1
+            logger.error(
+                f"Duplicate vectors found in solved vectors!: {duplicate_numbers.tolist()}"
+            )
+            return False
+
+        # 3. Find indices where sum of all solved vectors along rows is 1
         unavailable_numbers = np.where(np.sum(solved_vectors, axis=0) == 1)
 
         # 4. Use vector indices from 2 to return unsolved vector indices
@@ -288,15 +300,63 @@ class Sudoku:
         unsolved_vectors[:, unavailable_numbers] = 0
         vectors[unsolved_vector_inds] = unsolved_vectors
 
-    def solve(self, matrix: np.array):
+        return True
+
+    def use_single_appearance_solution(self, vectors: np.array):
+        """Find and use possible solutions that only appear once in the unsolved vectors."""
+
+        # 1. Find all unsolved vectors
+        unsolved_vector_inds = np.where(np.sum(vectors, axis=-1) != 1)
+        unsolved_vectors = vectors[unsolved_vector_inds]
+
+        # 2. Find all possible solutions that only appear once in the unsolved vectors
+        global_single_appearance_solutions = np.where(np.sum(vectors, axis=0) == 1)[0]
+        local_single_appearance_solutions = np.where(
+            np.sum(unsolved_vectors, axis=0) == 1
+        )[0]
+
+        # Retain only single appearance solutions that are unsolved
+        unsolved_single_appearance_solutions = np.intersect1d(
+            global_single_appearance_solutions, local_single_appearance_solutions
+        )
+
+        if unsolved_single_appearance_solutions.shape[0] == 0:
+            return
+
+        # 3. Gather vector and solution indices
+        vector_inds, solution_inds = np.where(
+            unsolved_vectors[:, unsolved_single_appearance_solutions] == 1
+        )
+        solutions_ordered = unsolved_single_appearance_solutions[solution_inds]
+
+        # 4. Use single appearance solutions to update unsolved vectors
+        unsolved_vectors[vector_inds, :] = np.eye(self.puzzle_size)[solutions_ordered]
+        vectors[unsolved_vector_inds] = unsolved_vectors
+
+    def update_vectors(self, vectors: np.array):
+        """This function updates the possible solutions for a single vector group."""
+
+        # 1. Remove solved numbers from unsolved vectors
+        okay = self.remove_impossible_solutions(vectors=vectors)
+        if not okay:
+            return False
+
+        # 2. Find possible solutions that only appear once in the unsolved vectors
+        self.use_single_appearance_solution(vectors=vectors)
+
+        return True
+
+    def solve(self, matrix: np.array, single_iteration: bool = False):
         """This function solves the sudoku puzzle."""
 
+        self.partial_solution = False
         matrix_prev = np.copy(matrix) + 1
 
         num_iterations = 0
         while not np.array_equal(matrix, matrix_prev):
 
             num_iterations += 1
+            self.number_iterations = num_iterations
 
             # 0. Check if puzzle is solved
             if np.sum(np.sum(matrix, axis=2) == 1) == matrix.shape[0] ** 2:
@@ -305,11 +365,90 @@ class Sudoku:
 
             matrix_prev = np.copy(matrix)
 
-            # 1. Solve for rows, columns, and blocks
-            for row, column, block in zip(self.rows, self.columns, self.blocks):
-                self.update_vectors(vectors=row)
-                self.update_vectors(vectors=column)
-                self.update_vectors(vectors=block)
+            # 1. Solve for rows
+            solve_for_row = self.last_solved == ("block", self.puzzle_size - 1) or (
+                self.last_solved[0] == "row"
+                and self.last_solved[1] != self.puzzle_size - 1
+            )
+            logger.debug(f"Solving for row: {solve_for_row}")
+            if not single_iteration or solve_for_row:
+                rows = (
+                    self.rows
+                    if not single_iteration
+                    else [self.rows[(self.last_solved[1] + 1) % self.puzzle_size]]
+                )
+                for index, row in enumerate(rows):
+                    index = (
+                        (self.last_solved[1] + 1) % self.puzzle_size
+                        if single_iteration
+                        else index
+                    )
+                    logger.debug(f"Solving for row {index} = \n{row}")
+                    okay = self.update_vectors(vectors=row)
+                    if not okay or (single_iteration and solve_for_row):
+                        self.partial_solution = True
+                        break
+
+            if single_iteration and solve_for_row:
+                self.last_solved = ("row", index)
+                break
+
+            # 2. Solve for columns
+            solve_for_column = self.last_solved == ("row", self.puzzle_size - 1) or (
+                self.last_solved[0] == "column"
+                and self.last_solved[1] != self.puzzle_size - 1
+            )
+            logger.debug(f"Solving for columns: {solve_for_column}")
+            if not single_iteration or solve_for_column:
+                columns = (
+                    self.columns
+                    if not single_iteration
+                    else [self.columns[(self.last_solved[1] + 1) % self.puzzle_size]]
+                )
+                for index, column in enumerate(columns):
+                    index = (
+                        (self.last_solved[1] + 1) % self.puzzle_size
+                        if single_iteration
+                        else index
+                    )
+                    logger.debug(f"Solving for column {index} = \n{column}")
+                    okay = self.update_vectors(vectors=column)
+                    if (not okay) or (single_iteration and solve_for_column):
+                        self.partial_solution = True
+                        break
+
+            if single_iteration and solve_for_column:
+                self.last_solved = ("column", index)
+                break
+
+            # 3. Solve for blocks
+            solve_for_block = self.last_solved == ("column", self.puzzle_size - 1) or (
+                self.last_solved[0] == "block"
+                and self.last_solved[1] != self.puzzle_size - 1
+            )
+            logger.debug(f"Solving for blocks: {solve_for_block}")
+            if not single_iteration or solve_for_block:
+                blocks = (
+                    self.blocks
+                    if not single_iteration
+                    else [self.blocks[(self.last_solved[1] + 1) % self.puzzle_size]]
+                )
+                for index, block in enumerate(blocks):
+                    index = (
+                        (self.last_solved[1] + 1) % self.puzzle_size
+                        if single_iteration
+                        else index
+                    )
+                    logger.debug(f"Solving for block {index} = \n{block}")
+                    okay = self.update_vectors(vectors=block)
+                    if (not okay) or (single_iteration and solve_for_block):
+                        self.partial_solution = True
+                        self.last_solved = ("block", index)
+                        break
+
+            if single_iteration and solve_for_block:
+                self.last_solved = ("block", index)
+                break
 
             # 7. Check if unsolvable
             if np.array_equal(matrix_prev, matrix):
@@ -318,12 +457,20 @@ class Sudoku:
                     f"\nPuzzle is unsolvable."
                 )
                 self.partial_solution = True
+
+            if self.partial_solution:
+                logger.error(
+                    f"Partial solution found after iteration {num_iterations}."
+                )
                 break
 
             # 8. Repeat from 1
+            if single_iteration:
+                break
 
         logger.info(f"num_iterations = {num_iterations}")
 
+        self.matrix = matrix
         self.solution = matrix
         return matrix
 
@@ -335,15 +482,17 @@ class Sudoku:
         row = int(row)
         column = int(column)
 
-        if value == 0:
-            self.matrix[row - 1, column - 1] = np.ones(self.puzzle_size)
+        # Would be nice if user could delete a number, but doing this messes up the options
+        # if value == 0:
+        #     self.matrix[row - 1, column - 1] = np.ones(self.puzzle_size)
 
-        else:
+        if value > 0:
             self.matrix[row - 1, column - 1] = self.numbers_encoded[value]
 
 
 if __name__ == "__main__":
     sudoku = Sudoku(puzzle_file="./sudoku_puzzle.txt")
-    soln = sudoku.solve(matrix=sudoku.matrix)
+    for _ in range(100):
+        soln = sudoku.solve(matrix=sudoku.matrix, single_iteration=True)
     # sudoku.solution_to_board(solution=soln)
     sudoku.solution_to_numbers_by_index(solution=soln, string_keys=True)
