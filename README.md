@@ -1,5 +1,7 @@
 # game-solver
 
+Do you want to remove sudoko from your life? Look no further.
+
 ## Run the web app
 
 This package has evolved over 1-day to include a Flask App for more detailed visual
