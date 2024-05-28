@@ -19,26 +19,27 @@ and browse to
 window. Hit the "Solve" button to see either the full solution or the partial solution
 if "unsolveable" with the current game-solver.
 
-## Current solver state
+## Current solver state: COMPLETE
 
 Apart from the most simple puzzles, sudoku cannot be solved by just
 eliminating possible cell values based on values that already exist in intersecting
-rows, columns, and blocks (as the solver currently does). These "unsolvable" puzzles
-yield partial solutions that are much better displayed in a GUI than on a text file. And
-seeing the current state will help us understand how to implement code to fully solve
-puzzles.
+rows, columns, and blocks.
 
-For example, game-solver currently outputs this partial solution:
+For example, consider this partial solution, paying particular attention to row 5 (1-indexed):
 
-<img width="500" alt="image" src="https://github.com/roomrys/game-solver/assets/38435167/ac9f8fde-460b-4c1a-86e3-1899cfb1d5be">
+<img width="500" alt="image" src="https://github.com/roomrys/game-solver/assets/38435167/65486b59-75df-45a9-ae58-ba192744e8bb">
 
-but, us human solvers can determine for example that this solution works for this cell
+. We see that there are multiple cells where the number "4" might be placed in row 5, but if we instead consider which rows, columns, or blocks require a "4", then we see that the right most center block only has one option where a "4" can be placed, leading us to this solution:
 
-<img width="500" alt="image" src="https://github.com/roomrys/game-solver/assets/38435167/469b71c0-d459-43fd-a2f7-70353ad725ed">
+<img width="500" alt="image" src="https://github.com/roomrys/game-solver/assets/38435167/025c780e-fc0b-4570-bff0-33cc83fe1daf">
 
-using the reasoning that for row 4, "4" can only be in the second block. So for row 5, that
-means that "4" cannot be in the second block. Since there is only one other place for "4"
-in row 5 outside of the second block, "4" must be located there.
+.
+
+So far, after a weekend of testing (and one particularly difficult newspaper soduko puzzle), the puzzle has been solved using this alternating strategy:
+1. Remove intersecting values from the solution space
+2. Accept solutions that only appear once in the solution space for a row, column, or block
+
+Originally the problem was formulated in such a way that we might get to do some linear algebra, but no real luck there. There is always the hope for a vectorization refactor.
 
 ## Dependencies
 
